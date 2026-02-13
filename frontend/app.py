@@ -116,9 +116,10 @@ if rows:
 
         if response.status_code == 200:
             st.success("Status updated!")
-            filtered_df[filtered_df["id"] == app_id]["status"] = new_status
 
-            print(filtered_df[filtered_df["id"] == app_id])
+            filtered_df.loc[filtered_df["id"] == app_id, "status"] = new_status
+
+            print(filtered_df[filtered_df["id"] == app_id].head())
 
         else:
             st.error("Failed to update status")
@@ -135,6 +136,10 @@ if rows:
 
         if response.status_code == 200:
             st.warning("Application deleted.")
+
+            filtered_df = filtered_df[filtered_df["id"] != delete_id]
+            print(filtered_df.head())
+
         else:
             st.error("Failed to delete application")
 
