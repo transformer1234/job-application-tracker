@@ -90,6 +90,10 @@ http://localhost:8000/docs
 ```bash
 pip install -r requirements.txt
 uvicorn backend.main:app --reload
+```
+### In another terminal
+
+```bash
 streamlit run frontend/app.py
 ```
 ## 📊 Analytics Included
