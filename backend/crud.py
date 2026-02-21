@@ -65,6 +65,7 @@ def delete_application(app_id: int):
     )
     conn.commit()
     conn.close()
+    reassign_ids()  # Reset IDs after deletion
 
 
 
@@ -118,3 +119,29 @@ def get_filtered_applications(
     rows = cursor.fetchall()
     conn.close()
     return rows, total_count
+
+
+def reassign_ids():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # Fetch all rows ordered by current id
+    cursor.execute("SELECT * FROM applications ORDER BY id ASC")
+    rows = cursor.fetchall()
+
+    # Delete all rows
+    cursor.execute("DELETE FROM applications")
+
+    # Re-insert with new sequential IDs
+    for new_id, row in enumerate(rows, start=1):
+        cursor.execute("""
+            INSERT INTO applications (id, company, role, location, date_applied, status, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (new_id, row[1], row[2], row[3], row[4], row[5], row[6]))
+
+    # Reset SQLite auto-increment counter
+    cursor.execute("DELETE FROM sqlite_sequence WHERE name='applications'")
+    cursor.execute("INSERT INTO sqlite_sequence (name, seq) VALUES ('applications', ?)", (len(rows),))
+
+    conn.commit()
+    conn.close()

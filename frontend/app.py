@@ -4,9 +4,7 @@ import requests
 
 API_URL = "http://localhost:8000"
 
-
 st.set_page_config(page_title="Job Application Tracker", layout="wide")
-
 st.title("💼 Job Application Tracker")
 
 # -------- Sidebar: Add Application --------
@@ -16,9 +14,7 @@ company = st.sidebar.text_input("Company")
 role = st.sidebar.text_input("Role")
 location = st.sidebar.text_input("Location")
 date_applied = st.sidebar.date_input("Date Applied")
-status = st.sidebar.selectbox(
-    "Status", ["Applied", "Interview", "Rejected", "Offer"]
-)
+status = st.sidebar.selectbox("Status", ["Applied", "Interview", "Rejected", "Offer"])
 notes = st.sidebar.text_area("Notes")
 
 if st.sidebar.button("➕ Add Application"):
@@ -31,9 +27,7 @@ if st.sidebar.button("➕ Add Application"):
             "status": status,
             "notes": notes
         }
-
         response = requests.post(f"{API_URL}/applications", json=payload)
-
         if response.status_code == 200:
             st.sidebar.success("Application added!")
         else:
@@ -42,7 +36,7 @@ if st.sidebar.button("➕ Add Application"):
 # -------- Main Section --------
 st.subheader("📋 All Applications")
 
-# -------- Filters --------
+# -------- Filters & Sorting --------
 st.subheader("🔎 Filters & Sorting")
 
 col1, col2, col3 = st.columns(3)
@@ -69,13 +63,13 @@ with col7:
 if "page" not in st.session_state:
     st.session_state.page = 1
 
-# Reset to page 1 if filters change
+# Reset to page 1 whenever filters change
 filter_key = f"{status_filter}|{search_company}|{sort_by}|{sort_order}|{date_from}|{date_to}|{page_size}"
 if "last_filter_key" not in st.session_state or st.session_state.last_filter_key != filter_key:
     st.session_state.page = 1
     st.session_state.last_filter_key = filter_key
 
-# -------- Fetch from API --------
+# -------- Build API request --------
 params = {
     "sort_by": sort_by,
     "sort_order": sort_order,
@@ -109,8 +103,8 @@ if rows:
     st.dataframe(df, use_container_width=True)
 
     # -------- Pagination Controls --------
-    st.markdown(f"**Page {st.session_state.page} of {total_pages}** &nbsp; | &nbsp; Total: {total} applications")
-    pcol1, pcol2, pcol3 = st.columns([1, 1, 6])
+    st.markdown(f"**Page {st.session_state.page} of {total_pages}** &nbsp;|&nbsp; Total: {total} application(s)")
+    pcol1, pcol2, _ = st.columns([1, 1, 6])
     with pcol1:
         if st.button("⬅ Prev") and st.session_state.page > 1:
             st.session_state.page -= 1
@@ -137,6 +131,7 @@ if rows:
         upd_response = requests.put(f"{API_URL}/applications/{app_id}", json=payload)
         if upd_response.status_code == 200:
             st.success("Status updated!")
+            st.rerun()
         else:
             st.error("Failed to update status")
 
@@ -154,9 +149,12 @@ if rows:
 
     # -------- Analytics --------
     st.subheader("📊 Analytics")
-    st.metric("Total Applications (filtered)", total)
-    status_counts = df["status"].value_counts()
-    st.bar_chart(status_counts)
 
-else:
-    st.info("No applications found.")
+    analytics_response = requests.get(f"{API_URL}/applications/all")
+    if analytics_response.status_code == 200:
+        all_df = pd.DataFrame(analytics_response.json())
+        st.metric("Total Applications", len(all_df))
+        status_counts = all_df["status"].value_counts()
+        st.bar_chart(status_counts)
+    else:
+        st.error("Could not load analytics")

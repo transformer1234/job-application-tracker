@@ -27,6 +27,24 @@ def create_application(application: ApplicationCreate):
     return ApplicationResponse(id=app_id, **application.dict())
 
 
+# ---------------- READ ALL (for analytics, no pagination) ----------------
+@app.get("/applications/all", response_model=List[ApplicationResponse])
+def get_all_applications():
+    rows = crud.get_all_applications()
+    return [
+        ApplicationResponse(
+            id=row[0],
+            company=row[1],
+            role=row[2],
+            location=row[3],
+            date_applied=row[4],
+            status=row[5],
+            notes=row[6],
+        )
+        for row in rows
+    ]
+
+
 # ---------------- READ ALL (with filtering, sorting, pagination) ----------------
 @app.get("/applications")
 def get_applications(
