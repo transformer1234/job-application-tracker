@@ -5,6 +5,9 @@ The application allows users to manage job applications through a REST API while
 
 This project demonstrates **backend API design**, **frontend integration**, and **clean software architecture**.
 
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.x-red)
 ---
 
 ## 🚀 Project Overview
@@ -21,15 +24,20 @@ This architecture mirrors real-world production systems.
 ---
 
 ## 🧱 Architecture
-
-Streamlit (Frontend UI)
-↓ HTTP Requests
-FastAPI (REST API)
-↓
-CRUD Layer
-↓
-SQLite Database
-
+````
+├── backend/
+│   ├── main.py        # FastAPI routes
+│   ├── crud.py        # Database operations
+│   ├── models.py      # Pydantic schemas
+│   └── database.py    # DB connection
+├── frontend/
+│   └── app.py         # Streamlit UI
+├── .env               # Environment variable
+├── requirements.txt
+├── .gitignore
+├── LICENSE
+└── README.md
+````
 
 ### Why this design?
 - Decoupled frontend and backend
@@ -41,13 +49,12 @@ SQLite Database
 ## ✨ Features
 
 ### Frontend (Streamlit)
-- Add new job applications
+- Add, update and delete job applications
 - View applications in a table
-- Filter by status and search by company
-- Update application status
-- Delete applications
-- Export applications as CSV
-- View analytics (status distribution, total count)
+- Analytics dashboard (status distribution, total count)
+- Filter by status, search by company/role, date range selection
+- Sorting and pagination
+- CSV export
 
 ### Backend (FastAPI)
 - RESTful API with full CRUD operations
@@ -71,13 +78,14 @@ SQLite Database
 
 ## 🧠 API Endpoints
 
-| Method | Endpoint | Description |
-|------|---------|-------------|
-| POST | `/applications` | Add a new application |
-| GET | `/applications` | Get all applications |
-| GET | `/applications/{id}` | Get application by ID |
-| PUT | `/applications/{id}` | Update application status |
-| DELETE | `/applications/{id}` | Delete application |
+| Method | Endpoint | Description                      |
+|--------|---------|----------------------------------|
+| POST   | `/applications` | Add a new application            |
+| GET    | `/applications` | Get all applications (paginated) |
+| GET    | `/applications/all` | Get all applications (analytics) |
+| GET    | `/applications/{id}` | Get application by ID            |
+| PUT    | `/applications/{id}` | Update application status        |
+| DELETE | `/applications/{id}` | Delete application               |
 
 Swagger UI available at:
 http://localhost:8000/docs

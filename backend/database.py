@@ -1,12 +1,15 @@
 import sqlite3
 from pathlib import Path
+from dotenv import load_dotenv
 
-DB_PATH = Path("data/applications.db")
+load_dotenv()
+
+DB_PATH = os.getenv("DB_PATH", "data/applications.db")
 
 
 def get_connection():
-    DB_PATH.parent.mkdir(exist_ok=True)
-    return sqlite3.connect(DB_PATH, check_same_thread=False)
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    return sqlite3.connect(DB_PATH)
 
 
 def create_table():
