@@ -1,5 +1,5 @@
-from fastapi import FastAPI, HTTPException
-from typing import List
+from fastapi import FastAPI, HTTPException, Query
+from typing import List, Optional
 from backend.database import create_table
 from backend.models import (
     ApplicationCreate,
@@ -27,11 +27,29 @@ def create_application(application: ApplicationCreate):
     return ApplicationResponse(id=app_id, **application.dict())
 
 
-# ---------------- READ ALL ----------------
-@app.get("/applications", response_model=List[ApplicationResponse])
-def get_applications():
-    rows = crud.get_all_applications()
-    return [
+# ---------------- READ ALL (with filtering, sorting, pagination) ----------------
+@app.get("/applications")
+def get_applications(
+    status: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+    sort_by: str = Query("date_applied"),
+    sort_order: str = Query("DESC"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100),
+):
+    rows, total_count = crud.get_filtered_applications(
+        status=status,
+        search=search,
+        date_from=date_from,
+        date_to=date_to,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        page=page,
+        page_size=page_size,
+    )
+    applications = [
         ApplicationResponse(
             id=row[0],
             company=row[1],
@@ -43,6 +61,7 @@ def get_applications():
         )
         for row in rows
     ]
+    return {"data": applications, "total": total_count, "page": page, "page_size": page_size}
 
 
 # ---------------- READ ONE ----------------
