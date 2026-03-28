@@ -1,15 +1,14 @@
-import sqlite3
+import psycopg2
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-DB_PATH = os.getenv("DB_PATH", "data/applications.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 
 def get_connection():
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    return sqlite3.connect(DB_PATH)
+    return psycopg2.connect(DATABASE_URL)
 
 
 def create_table():
@@ -17,7 +16,7 @@ def create_table():
     cursor = conn.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS applications (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             company TEXT NOT NULL,
             role TEXT NOT NULL,
             location TEXT,

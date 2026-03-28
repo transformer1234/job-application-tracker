@@ -9,7 +9,8 @@ def create_application(app: ApplicationCreate):
 
     cursor.execute("""
         INSERT INTO applications (company, role, location, date_applied, status, notes)
-        VALUES (?, ?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        RETURNING id
     """, (
         app.company,
         app.role,
@@ -19,8 +20,8 @@ def create_application(app: ApplicationCreate):
         app.notes
     ))
 
+    app_id = cursor.fetchone()[0]
     conn.commit()
-    app_id = cursor.lastrowid
     conn.close()
     return app_id
 
@@ -38,7 +39,7 @@ def get_application_by_id(app_id: int):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT * FROM applications WHERE id = ?", (app_id,)
+        "SELECT * FROM applications WHERE id = %s", (app_id,)
     )
     row = cursor.fetchone()
     conn.close()
@@ -49,7 +50,7 @@ def update_application_status(app_id: int, status: str):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "UPDATE applications SET status = ? WHERE id = ?",
+        "UPDATE applications SET status = %s WHERE id = %s",
         (status, app_id)
     )
     conn.commit()
@@ -60,12 +61,11 @@ def delete_application(app_id: int):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "DELETE FROM applications WHERE id = ?",
+        "DELETE FROM applications WHERE id = %s",
         (app_id,)
     )
     conn.commit()
     conn.close()
-    reassign_ids()  # Reset IDs after deletion
 
 
 
@@ -91,19 +91,19 @@ def get_filtered_applications(
     params = []
 
     if status:
-        query += " AND status = ?"
+        query += " AND status = %s"
         params.append(status)
 
     if search:
-        query += " AND (company LIKE ? OR role LIKE ?)"
+        query += " AND (company ILIKE %s OR role ILIKE %s)"
         params.extend([f"%{search}%", f"%{search}%"])
 
     if date_from:
-        query += " AND date_applied >= ?"
+        query += " AND date_applied >= %s"
         params.append(date_from)
 
     if date_to:
-        query += " AND date_applied <= ?"
+        query += " AND date_applied <= %s"
         params.append(date_to)
 
     # Count total for pagination
@@ -112,36 +112,10 @@ def get_filtered_applications(
     total_count = count_cursor.fetchone()[0]
 
     query += f" ORDER BY {sort_by} {sort_order}"
-    query += " LIMIT ? OFFSET ?"
+    query += " LIMIT %s OFFSET %s"
     params.extend([page_size, (page - 1) * page_size])
 
     cursor.execute(query, params)
     rows = cursor.fetchall()
     conn.close()
     return rows, total_count
-
-
-def reassign_ids():
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    # Fetch all rows ordered by current id
-    cursor.execute("SELECT * FROM applications ORDER BY id ASC")
-    rows = cursor.fetchall()
-
-    # Delete all rows
-    cursor.execute("DELETE FROM applications")
-
-    # Re-insert with new sequential IDs
-    for new_id, row in enumerate(rows, start=1):
-        cursor.execute("""
-            INSERT INTO applications (id, company, role, location, date_applied, status, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (new_id, row[1], row[2], row[3], row[4], row[5], row[6]))
-
-    # Reset SQLite auto-increment counter
-    cursor.execute("DELETE FROM sqlite_sequence WHERE name='applications'")
-    cursor.execute("INSERT INTO sqlite_sequence (name, seq) VALUES ('applications', ?)", (len(rows),))
-
-    conn.commit()
-    conn.close()
