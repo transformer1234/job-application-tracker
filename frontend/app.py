@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-API_URL = os.getenv("API_URL")
+API_URL = os.getenv("API_URL") or st.secrets.get("API_URL")
 
 st.set_page_config(page_title="Job Application Tracker", layout="wide")
 st.title("💼 Job Application Tracker")
