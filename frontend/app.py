@@ -1,8 +1,11 @@
 import streamlit as st
 import pandas as pd
 import requests
+import os
+from dotenv import load_dotenv
 
-API_URL = "http://localhost:8000"
+load_dotenv()
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 st.set_page_config(page_title="Job Application Tracker", layout="wide")
 st.title("💼 Job Application Tracker")
