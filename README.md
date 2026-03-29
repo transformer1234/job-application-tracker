@@ -1,111 +1,179 @@
-# 💼 Job Application Tracker (Full-Stack Python App)
+# Job Application Tracker
 
-A full-stack job application tracking system built with **FastAPI (backend)** and **Streamlit (frontend)**.  
-The application allows users to manage job applications through a REST API while interacting via a clean web UI.
-
-This project demonstrates **backend API design**, **frontend integration**, and **clean software architecture**.
-
-![Python](https://img.shields.io/badge/Python-3.11-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.x-red)
----
-
-## 🚀 Project Overview
-
-Tracking job applications across multiple companies can become disorganized quickly.  
-This project solves that problem by separating responsibilities:
-
-- **FastAPI** handles data validation, business logic, and persistence
-- **Streamlit** provides an interactive user interface
-- **SQLite** stores application data persistently
-
-This architecture mirrors real-world production systems.
+A full-stack, AI-native job application tracker with three interfaces — a REST API, a web dashboard, and an MCP server that lets AI assistants manage your applications through natural language.
 
 ---
 
-## 🧱 Architecture
-````
-├── backend/
-│   ├── main.py        # FastAPI routes
-│   ├── crud.py        # Database operations
-│   ├── models.py      # Pydantic schemas
-│   └── database.py    # DB connection
-├── frontend/
-│   └── app.py         # Streamlit UI
-├── .env               # Environment variable
-├── requirements.txt
-├── .gitignore
-├── LICENSE
-└── README.md
-````
-
-### Why this design?
-- Decoupled frontend and backend
-- Backend can be reused by any client (web, mobile, CLI)
-- Clear separation of concerns
-
----
-
-## ✨ Features
-
-### Frontend (Streamlit)
-- Add, update and delete job applications
-- View applications in a table
-- Analytics dashboard (status distribution, total count)
-- Filter by status, search by company/role, date range selection
-- Sorting and pagination
-- CSV export
-
-### Backend (FastAPI)
-- RESTful API with full CRUD operations
-- Request & response validation using Pydantic
-- SQLite persistence
-- Auto-generated Swagger documentation
-
----
-
-## 🛠 Tech Stack
-
-- **Python**
-- **FastAPI** – Backend API
-- **Streamlit** – Frontend UI
-- **SQLite** – Database
-- **Pydantic** – Data validation
-- **Pandas** – Data handling
-- **Uvicorn** – ASGI server
-
----
-
-## 🧠 API Endpoints
-
-| Method | Endpoint | Description                      |
-|--------|---------|----------------------------------|
-| POST   | `/applications` | Add a new application            |
-| GET    | `/applications` | Get all applications (paginated) |
-| GET    | `/applications/all` | Get all applications (analytics) |
-| GET    | `/applications/{id}` | Get application by ID            |
-| PUT    | `/applications/{id}` | Update application status        |
-| DELETE | `/applications/{id}` | Delete application               |
-
-Swagger UI available at:
-http://localhost:8000/docs
-
-
----
-
-## ▶️ How to Run Locally
-
-```bash
-pip install -r requirements.txt
-uvicorn backend.main:app --reload
+## Architecture
+ 
 ```
-### In another terminal
+┌─────────────────────────────────────────────────────┐
+│                    Interfaces                        │
+│                                                      │
+│   FastAPI (REST)   Streamlit (UI)   FastMCP (AI)    │
+│   Render           Streamlit Cloud  Render           │
+└────────────┬───────────────┬──────────────┬─────────┘
+             │               │              │
+             └───────────────┼──────────────┘
+                             │
+                    ┌────────▼────────┐
+                    │   PostgreSQL    │
+                    │   Render        │
+                    └─────────────────┘
+```
+
+One database. Three ways to interact. All live.
+
+---
+
+## Live Demos
+
+| Interface | URL |
+|-----------|-----|
+| REST API (Swagger) | https://job-application-tracker-api-eu2z.onrender.com/docs |
+| Streamlit Dashboard | *https://mt-job-application-tracker.streamlit.app/* |
+| MCP Server | https://job-application-mcp.onrender.com/mcp |
+
+> **Note:** Render free tier spins down after 15 minutes of inactivity. First request may take ~30 seconds.
+
+---
+
+## Features
+
+### REST API (FastAPI)
+- Full CRUD for job applications
+- Filtering by status, search term, date range
+- Sorting and pagination
+- Dedicated `/applications/all` endpoint for analytics (no pagination)
+- Auto-generated Swagger docs at `/docs`
+
+### Web Dashboard (Streamlit)
+- Add, update, and delete applications
+- Filter and search
+- Visual analytics — status breakdown, application trends
+- Connects to the same live database as the API
+
+### MCP Server (FastMCP)
+- 8 tools accessible to any MCP-compatible AI assistant
+- Natural language interface: *"Add an application for Data Scientist at Google"*
+- Deployed over HTTP — connectable from Claude.ai browser, Claude Desktop, Cursor, and more
+- Same PostgreSQL database as the REST API — consistent data across all interfaces
+
+---
+
+## MCP Tools
+
+| Tool | Description |
+|------|-------------|
+| `add_application` | Add a new job application |
+| `update_application_status` | Update status of an existing application |
+| `delete_application` | Delete an application by ID |
+| `get_all_applications` | List all applications (most recent first) |
+| `get_application_by_id` | Get details of a specific application |
+| `search_applications` | Filter by company, role, status, date range |
+| `get_statistics` | Status breakdown, trends, top companies |
+| `get_status_options` | List of recommended status values |
+
+---
+
+## Connecting the MCP Server
+
+### Claude.ai (Browser)
+Go to **Settings → Integrations → Add MCP Server** and paste:
+```
+https://job-application-mcp.onrender.com/mcp
+```
+
+### Claude Desktop
+Add to `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "job-tracker": {
+      "type": "http",
+      "url": "https://job-application-mcp.onrender.com/mcp"
+    }
+  }
+}
+```
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| REST API | FastAPI, Pydantic v2 |
+| Web UI | Streamlit, Pandas |
+| MCP Server | FastMCP |
+| Database | PostgreSQL (psycopg2) |
+| Hosting | Render (API + MCP + DB), Streamlit Cloud |
+| Config | python-dotenv, Streamlit Secrets |
+
+---
+
+## Project Structure
+
+```
+job-application-tracker/                        # Main repo
+├── backend/
+│   ├── main.py                     # FastAPI app
+│   ├── crud.py                     # Database operations
+│   ├── database.py                 # PostgreSQL connection
+│   └── models.py                   # Pydantic schemas
+├── frontend/
+│   └── app.py                      # Streamlit dashboard
+└── requirements.txt
+
+job-application-mcp/                # MCP repo
+├── server.py                       # FastMCP server (8 tools)
+└── requirements.txt
+```
+
+---
+
+## Local Development
+
+### Prerequisites
+- Python 3.10+
+- PostgreSQL (or use the Render cloud DB)
+
+### Setup
 
 ```bash
+# Clone the repo
+git clone https://github.com/transformer1234/job-tracker
+cd job-tracker
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env
+# Add your DATABASE_URL to .env
+
+# Run FastAPI
+python -m uvicorn backend.main:app --reload
+
+# Run Streamlit (separate terminal)
 streamlit run frontend/app.py
 ```
-## 📊 Analytics Included
 
-Total applications count
+### MCP Server
 
-Applications grouped by status (bar chart)
+```bash
+git clone https://github.com/transformer1234/job-application-mcp
+cd job-application-mcp
+pip install -r requirements.txt
+
+# Add DATABASE_URL to .env
+python server.py
+```
+
+---
+
+## Key Design Decisions
+
+- **Single database, multiple interfaces** — FastAPI, Streamlit, and the MCP server all share one PostgreSQL instance on Render, ensuring consistent data across all interfaces
+- **Dedicated analytics endpoint** — `/applications/all` bypasses pagination to give analytics accurate counts across the full dataset
+- **HTTP transport for MCP** — deployed over `streamable-http` instead of `stdio`, making the MCP server accessible from browser-based AI clients without local installation

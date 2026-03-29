@@ -19,6 +19,19 @@ app = FastAPI(
 def startup_event():
     create_table()
 
+@app.get("/")
+def root():
+    return {
+        "project": "Job Application Tracker API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "endpoints": {
+            "applications": "/applications",
+            "analytics": "/applications/all",
+        },
+        "dashboard": "https://mt-job-application-tracker.streamlit.app/",
+        "mcp_server": "https://job-application-mcp.onrender.com/mcp"
+    }
 
 # ---------------- CREATE ----------------
 @app.post("/applications", response_model=ApplicationResponse)
