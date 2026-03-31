@@ -54,7 +54,7 @@ One database. Three ways to interact. All live.
 - Connects to the same live database as the API
 
 ### MCP Server (FastMCP)
-- 8 tools accessible to any MCP-compatible AI assistant
+- 11 tools accessible to any MCP-compatible AI assistant
 - Natural language interface: *"Add an application for Data Scientist at Google"*
 - Deployed over HTTP — connectable from Claude.ai browser, Claude Desktop, Cursor, and more
 - Same PostgreSQL database as the REST API — consistent data across all interfaces
@@ -73,6 +73,9 @@ One database. Three ways to interact. All live.
 | `search_applications` | Filter by company, role, status, date range |
 | `get_statistics` | Status breakdown, trends, top companies |
 | `get_status_options` | List of recommended status values |
+| `get_upcoming_interviews` | List of applications with upcoming or recent interviews |
+| `generate_weekly_report` | Generate a weekly summary report | 
+| `suggest_follow_up` | Suggest applications that may need a follow-up based on inactivity |
 
 ---
 
@@ -142,8 +145,8 @@ job-application-mcp/                # MCP repo
 
 ```bash
 # Clone the repo
-git clone https://github.com/transformer1234/job-tracker
-cd job-tracker
+git clone https://github.com/transformer1234/job-application-tracker
+cd job-application-tracker
 
 # Install dependencies
 pip install -r requirements.txt
