@@ -1,5 +1,6 @@
 csv/
 data/applications.db
+*.svg
 
 # =========================
 # Python
